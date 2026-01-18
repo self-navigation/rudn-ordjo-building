@@ -6,6 +6,23 @@ from ament_index_python.packages import get_package_share_directory
 import xml.etree.ElementTree as ET
 import os
 
+def exclude_part(sdf_content: str, floor_num: int, cutoff_floor: int, part: str) -> str:
+    if int(floor_num) >= cutoff_floor:
+        root = ET.fromstring(sdf_content)
+        model = root.find("model")
+        base_link = model.find("./link[@name='base_link']")
+
+        print(f"./visual[@name='{part}'_visual']")
+        visual = base_link.find(f"./visual[@name='{part}_visual']")
+        if visual is not None:
+            base_link.remove(visual)
+        collision = base_link.find(f"./collision[@name='{part}_collision']")
+        if collision is not None:
+            base_link.remove(collision)
+
+        sdf_content = ET.tostring(root, encoding="unicode")
+        return sdf_content
+
 def generate_sdf(context, *args, **kwargs):
     floor_num = context.launch_configurations["floor_number"]
 
@@ -16,19 +33,8 @@ def generate_sdf(context, *args, **kwargs):
     
     sdf_content = sdf_template.replace("{floor_num}", floor_num)
 
-    if int(floor_num) >= 4:
-        root = ET.fromstring(sdf_content)
-        model = root.find("model")
-        base_link = model.find("./link[@name='base_link']")
-
-        center_visual = base_link.find("./visual[@name='center_visual']")
-        if center_visual is not None:
-            base_link.remove(center_visual)
-        center_collision = base_link.find("./collision[@name='center_collision']")
-        if center_collision is not None:
-            base_link.remove(center_collision)
-
-        sdf_content = ET.tostring(root, encoding="unicode")
+    sdf_content = exclude_part(sdf_content, floor_num, 4, "center")
+    sdf_content = exclude_part(sdf_content, floor_num, 6, "right")
 
     sdf_content = sdf_content.replace("package://rudn_ordjo_building/", f"file://{package_dir}/")
     
