@@ -1,0 +1,105 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <model name="rudn_ordjo_3rd_floor">
+    <static>true</static>
+    <link name="base_link">
+      <pose>0 0 0 1.570796 0 0</pose>
+      
+      <!-- Center part -->
+      <visual name="center_visual">
+        <geometry>
+          <mesh>
+	    <uri>package://rudn_ordjo_building/models/meshes/floor_{floor_num}_center.glb</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+	<material>
+	  <pbr>
+	    <metal>
+              <metalness>0</metalness>
+	      <roughness>1</roughness>
+	    </metal>
+	  </pbr>
+	  <ambient>0.8 0.8 0.8 1</ambient>
+	  <diffuse>1 1 1 1</diffuse>
+	  <script>
+	    <uri>file://media/materials/scripts/gazebo.material</uri>
+	    <name>Gazebo/Grey</name>
+	  </script>
+	</material>
+      </visual>
+      <collision name="center_collision">
+        <geometry>
+          <mesh>
+	    <uri>package://rudn_ordjo_building/models/meshes/floor_{floor_num}_center.glb</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+      </collision>
+      
+      <!-- Left part -->
+      <visual name="left_visual">
+        <geometry>
+          <mesh>
+	    <uri>package://rudn_ordjo_building/models/meshes/floor_{floor_num}_left.glb</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+	<material>
+	  <pbr>
+	    <metal>
+              <metalness>0</metalness>
+	      <roughness>1</roughness>
+	    </metal>
+	  </pbr>
+	  <ambient>0.8 0.8 0.8 1</ambient>
+	  <diffuse>1 1 1 1</diffuse>
+	  <script>
+	    <uri>file://media/materials/scripts/gazebo.material</uri>
+	    <name>Gazebo/Blue</name>
+	  </script>
+	</material>
+      </visual>
+      <collision name="left_collision">
+        <geometry>
+          <mesh>
+	    <uri>package://rudn_ordjo_building/models/meshes/floor_{floor_num}_left.glb</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+      </collision>
+
+      <!-- Right part -->
+      <visual name="right_visual">
+        <geometry>
+          <mesh>
+	    <uri>package://rudn_ordjo_building/models/meshes/floor_{floor_num}_right.glb</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+	<material>
+	  <pbr>
+	    <metal>
+              <metalness>0</metalness>
+	      <roughness>1</roughness>
+	    </metal>
+	  </pbr>
+	  <ambient>0.8 0.8 0.8 1</ambient>
+	  <diffuse>1 1 1 1</diffuse>
+	  <script>
+	    <uri>file://media/materials/scripts/gazebo.material</uri>
+	    <name>Gazebo/Red</name>
+	  </script>
+	</material>
+      </visual>
+      <collision name="right_collision">
+        <geometry>
+          <mesh>
+	    <uri>package://rudn_ordjo_building/models/meshes/floor_{floor_num}_right.glb</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
