@@ -21,7 +21,7 @@ def exclude_part(sdf_content: str, floor_num: int, cutoff_floor: int, part: str)
             base_link.remove(collision)
 
         sdf_content = ET.tostring(root, encoding="unicode")
-        return sdf_content
+    return sdf_content
 
 def generate_sdf(context, *args, **kwargs):
     floor_num = context.launch_configurations["floor_number"]
