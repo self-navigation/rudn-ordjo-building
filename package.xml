@@ -14,6 +14,8 @@
 
   <export>
     <build_type>ament_python</build_type>
+    <gazebo_ros gazebo_model_path="${prefix}/models"/>
+    <gazebo_ros gazebo_media_path="${prefix}/models/meshes"/>
   </export>
   <depend>ros_gz_sim</depend>
   <exec_depend>ament_index_python</exec_depend>
