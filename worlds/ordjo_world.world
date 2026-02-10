@@ -1,6 +1,17 @@
 <?xml version="1.0" ?>
 <sdf version="1.9">
   <world name="ordjo_world">
+    <!-- Required for magnetometer to compute local magnetic field -->
+    <spherical_coordinates>
+      <!-- Standard Earth ellipsoid model -->
+      <surface_model>EARTH_WGS84</surface_model>
+      <!-- Location about in the middle of RUDN Ordjonikidze building -->
+      <latitude_deg>55.71045</latitude_deg>
+      <longitude_deg>37.60338</longitude_deg>
+      <elevation>147.67</elevation>
+      <heading_deg>0.0</heading_deg>
+    </spherical_coordinates>
+
     <physics name="default_physics" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
