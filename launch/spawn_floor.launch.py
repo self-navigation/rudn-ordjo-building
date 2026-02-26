@@ -6,6 +6,7 @@ from ament_index_python.packages import get_package_share_directory
 import xml.etree.ElementTree as ET
 import os
 
+
 def exclude_part(sdf_content: str, floor_num: int, cutoff_floor: int, part: str) -> str:
     if int(floor_num) >= cutoff_floor:
         root = ET.fromstring(sdf_content)
@@ -23,21 +24,24 @@ def exclude_part(sdf_content: str, floor_num: int, cutoff_floor: int, part: str)
         sdf_content = ET.tostring(root, encoding="unicode")
     return sdf_content
 
-def generate_sdf(context, *args, **kwargs):
-    floor_num = context.launch_configurations["floor_number"]
+
+def generate_sdf(context):
+    floor_num = LaunchConfiguration("floor_number").perform(context)
 
     package_dir = get_package_share_directory("rudn_ordjo_building")
     template_path = os.path.join(package_dir, "models", "model_template.sdf")
     with open(template_path, "r") as f:
         sdf_template = f.read()
-    
+
     sdf_content = sdf_template.replace("{floor_num}", floor_num)
 
     sdf_content = exclude_part(sdf_content, floor_num, 4, "center")
     sdf_content = exclude_part(sdf_content, floor_num, 6, "right")
 
-    sdf_content = sdf_content.replace("package://rudn_ordjo_building/", f"file://{package_dir}/")
-    
+    sdf_content = sdf_content.replace(
+        "package://rudn_ordjo_building/", f"file://{package_dir}/"
+    )
+
     spawn_entity = Node(
         package="ros_gz_sim",
         executable="create",
@@ -47,24 +51,29 @@ def generate_sdf(context, *args, **kwargs):
             "-string",
             sdf_content,
             "-x",
-            "0",
+            LaunchConfiguration("x"),
             "-y",
-            "0",
+            LaunchConfiguration("y"),
             "-z",
-            "0",
+            LaunchConfiguration("z"),
         ],
-        output="screen"
+        output="screen",
     )
-    
+
     return [spawn_entity]
 
+
 def generate_launch_description():
-    return LaunchDescription([
-        DeclareLaunchArgument(
-            "floor_number",
-            default_value="3",
-            description="Floor number to spawn (e.g., 3 for 3rd floor)"
-        ),
-        
-        OpaqueFunction(function=generate_sdf)
-    ])
+    return LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                "floor_number",
+                default_value="3",
+                description="Floor number to spawn (e.g., 3 for 3rd floor)",
+            ),
+            DeclareLaunchArgument("x", default_value="0"),
+            DeclareLaunchArgument("y", default_value="0"),
+            DeclareLaunchArgument("z", default_value="0"),
+            OpaqueFunction(function=generate_sdf),
+        ]
+    )
