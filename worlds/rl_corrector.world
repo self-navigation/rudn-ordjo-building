@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+<!--
+  Dedicated world for RL-corrector training / GazeboBridge validation.
+
+  A near-clone of ordjo_world.world (same spherical_coordinates for the
+  magnetometer, same flat ground + sun), with ONE deliberate difference: the
+  physics block ships real_time_update_rate=0 so the sim runs as fast as the
+  CPU allows WITHOUT the bridge having to call /world/<world>/set_physics at
+  runtime. That service overwrites every field of the Physics component from
+  the request message, and the gz Physics proto defaults gravity to (0,0,0):
+  unthrottling at runtime was silently zeroing gravity (robot floats). Baking
+  the rate in here keeps the production ordjo_world at real-time while training
+  needs no set_physics call to go fast. gravity is pinned explicitly below so
+  the world is self-documenting and never depends on the gz default.
+
+  Loaded by agx_bringup/launch/rl_corrector_sim.launch.py. The building model
+  and surface patches are intentionally absent: the GazeboBridge spawns terrain
+  itself per-episode and a clean flat-ground baseline must start patch-free.
+-->
+<sdf version="1.9">
+  <world name="rl_corrector">
+    <!-- Required for magnetometer to compute local magnetic field -->
+    <spherical_coordinates>
+      <!-- Standard Earth ellipsoid model -->
+      <surface_model>EARTH_WGS84</surface_model>
+      <!-- Location about in the middle of RUDN Ordjonikidze building -->
+      <latitude_deg>55.71045</latitude_deg>
+      <longitude_deg>37.60338</longitude_deg>
+      <elevation>147.67</elevation>
+      <heading_deg>0.0</heading_deg>
+    </spherical_coordinates>
+
+    <!-- Pinned explicitly (gz default is the same) so set_physics restoring or
+         re-setting physics has a known-correct value to write back. -->
+    <gravity>0 0 -9.8</gravity>
+
+    <physics name="default_physics" type="ode">
+      <max_step_size>0.01</max_step_size>
+      <!-- real_time_update_rate=0 => run uncapped; rtf is the unthrottled target.
+           This is the whole reason this world exists (see header). -->
+      <real_time_factor>1000.0</real_time_factor>
+      <real_time_update_rate>0</real_time_update_rate>
+    </physics>
+
+    <scene>
+      <ambient>0.4 0.4 0.4 1</ambient>
+      <background>0.7 0.7 0.7 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <cast_shadows>false</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>300 150</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>
