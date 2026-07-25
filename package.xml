@@ -19,4 +19,10 @@
   </export>
   <depend>ros_gz_sim</depend>
   <exec_depend>ament_index_python</exec_depend>
+
+  <!-- map_publisher: serves the baked occupancy grids under maps/ -->
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-pil</exec_depend>
 </package>

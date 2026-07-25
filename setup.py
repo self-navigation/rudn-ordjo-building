@@ -16,6 +16,10 @@ setup(
         (os.path.join("share", package_name, "models"), glob("models/*.sdf")),
         (os.path.join("share", package_name, "models/meshes"), glob("models/meshes/*.glb")),
         (os.path.join("share", package_name, "worlds"), glob("worlds/*.world")),
+        # Baked occupancy grids (tools/bake_floor_map.py). Both halves of the
+        # pair must be installed: the YAML names the PNG as a sibling path.
+        (os.path.join("share", package_name, "maps"),
+            glob("maps/*.png") + glob("maps/*.yaml")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
@@ -30,6 +34,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
+            f"map_publisher = {package_name}.map_publisher:main",
         ],
     },
 )
