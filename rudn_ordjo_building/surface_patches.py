@@ -43,6 +43,20 @@ PROFILES: dict = {
         slip2=0.85,
         color_rgba=(0.88, 0.95, 1.00, 0.88),   # pale ice white-blue
     ),
+    # Same mu as "icy", zero force-dependent slip. Exists to answer whether
+    # slip1/slip2 do anything at all: they live in a <friction><ode> block, but
+    # gz-sim loads the DARTSIM plugin (the world's <physics type="ode"> is
+    # Gazebo Classic syntax that gz-sim ignores), and DART is not known to read
+    # ODE's force-dependent-slip parameters. Drive across this and "icy" in one
+    # run: identical behaviour means mu is the only knob that was ever
+    # connected. Magenta so the two are distinguishable on screen.
+    "icy_noslip": PhysicsProfile(
+        mu=0.05,
+        mu2=0.05,
+        slip1=0.0,
+        slip2=0.0,
+        color_rgba=(1.00, 0.30, 0.90, 0.88),
+    ),
     "rough": PhysicsProfile(
         mu=2.5,
         mu2=2.5,
@@ -78,6 +92,26 @@ PROFILES: dict = {
 # ---------------------------------------------------------------------------
 
 _THICKNESS = 0.02   # box height in metres; top face sits flush with z=patch.z
+# The link is SUNK by its own half-height so the top face lands on z=patch.z
+# instead of a full thickness above it. It used to be raised by +THICKNESS/2,
+# which put the top face ~2.1 cm above the floor (spawn z is 0.001) and made
+# every "friction patch" a 2 cm curb: the robot drove into the leading edge and
+# stopped dead, wheels turning. That reads exactly like zero traction in the
+# logs, and it is not -- it is a step. Patches must be surfaces, not obstacles.
+#
+# patch.z defaults to 0.001, so the top face ends up 1 mm proud of the ground
+# rather than exactly coincident with it. That is deliberate: two collision
+# surfaces at identical height make contact selection ambiguous, and the robot
+# can end up resting on the floor plane with the patch's friction never applied.
+# 1 mm is below anything a 82.5 mm wheel notices.
+_SINK = -_THICKNESS / 2
+# The VISUAL is lifted higher than the collision. At 1 mm the patch surface and
+# the floor are close enough that the renderer z-fights and the patch appears to
+# clip through the ground. A visual carries no contact geometry, so it can sit
+# as high as it likes without the robot ever touching it -- the physics still
+# uses the 1 mm collision offset above. Keep these two independent: raising the
+# COLLISION to fix a rendering artefact is how the 2 cm curb happened.
+_VISUAL_LIFT = 0.006
 _STRIPE_COUNT = 24   # number of stripes on directional surfaces
 
 
@@ -97,7 +131,7 @@ def _stripe_visuals(width: float, length: float, slip_axis: str, c1: tuple[float
             color = _fmt_color(c1 if i % 2 == 0 else c2)
             parts.append(
                 f"<visual name=\"stripe_{i}\">"
-                f"<pose>{ox:.4f} 0 0 0 0 0</pose>"
+                f"<pose>{ox:.4f} 0 {_SINK + _VISUAL_LIFT:.4f} 0 0 0</pose>"
                 f"<geometry><box>"
                 f"<size>{sw:.4f} {length:.4f} {_THICKNESS:.4f}</size>"
                 f"</box></geometry>"
@@ -114,7 +148,7 @@ def _stripe_visuals(width: float, length: float, slip_axis: str, c1: tuple[float
             color = _fmt_color(c1 if i % 2 == 0 else c2)
             parts.append(
                 f"<visual name=\"stripe_{i}\">"
-                f"<pose>0 {oy:.4f} 0 0 0 0</pose>"
+                f"<pose>0 {oy:.4f} {_SINK + _VISUAL_LIFT:.4f} 0 0 0</pose>"
                 f"<geometry><box>"
                 f"<size>{width:.4f} {sl:.4f} {_THICKNESS:.4f}</size>"
                 f"</box></geometry>"
@@ -142,6 +176,7 @@ def build_patch_sdf(patch: dict, profile: PhysicsProfile, idx: int) -> str:
         color = _fmt_color(profile.color_rgba)
         visual_xml = (
             f"<visual name=\"visual\">"
+            f"<pose>0 0 {_SINK + _VISUAL_LIFT:.4f} 0 0 0</pose>"
             f"<geometry><box>"
             f"<size>{width:.4f} {length:.4f} {_THICKNESS:.4f}</size>"
             f"</box></geometry>"
@@ -163,9 +198,10 @@ def build_patch_sdf(patch: dict, profile: PhysicsProfile, idx: int) -> str:
         f'<model name="{name}">'
         "<static>true</static>"
         "<link name=\"link\">"
-        f"<pose>0 0 {_THICKNESS / 2:.4f} 0 0 {yaw:.6f}</pose>"
+        f"<pose>0 0 0 0 0 {yaw:.6f}</pose>"
         f"{visual_xml}"
         "<collision name=\"collision\">"
+        f"<pose>0 0 {_SINK:.4f} 0 0 0</pose>"
         "<geometry><box>"
         f"<size>{width:.4f} {length:.4f} {_THICKNESS:.4f}</size>"
         "</box></geometry>"
