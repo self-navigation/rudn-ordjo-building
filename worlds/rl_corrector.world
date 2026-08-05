@@ -71,6 +71,24 @@
               <normal>0 0 1</normal>
             </plane>
           </geometry>
+          <!-- MUST STAY ABOVE THE WHEEL'S mu2 (0.7 in scout_description's
+               wheel.xacro). Gazebo combines two surfaces by taking the SMALLER
+               coefficient, so while this exceeds 0.7 the ground binds the wheel
+               longitudinally and the wheel binds itself laterally -- two
+               independent constraints, giving the (1.0, 0.7) effective pair that
+               IS the skid-steer's ability to yaw. Drop below 0.7 and this value
+               binds BOTH channels, the ratio collapses to 1:1, and the robot
+               stops being able to steer at all.
+
+               This was briefly set to 0.45 on 2026-08-04 to model linoleum. That
+               is a real surface but not a representable one here: measured yaw
+               gain fell from 0.73 to 0.06 and the PMP plans became unfollowable
+               (27 m cross-track on a corner, open loop AND TVLQR alike). See
+               tools/sweep_ground_mu.sh for the chi-vs-mu curve; the cliff is at
+               0.7 to the digit.
+
+               Modelling a slipperier floor therefore means lowering the WHEEL's
+               mu1/mu2 pair, not this number. -->
           <surface>
             <friction>
               <ode>
